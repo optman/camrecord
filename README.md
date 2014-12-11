@@ -1,7 +1,7 @@
 camrecord
 =========
 
-remote record ip-cam video into file through rstp.
+remote record ip-cam video into file through rtsp.
 
 Usage:
 
