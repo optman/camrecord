@@ -14,7 +14,7 @@ import "flag"
 var fuaBuffer *bytes.Buffer
 var f *os.File
 
-var  server = flag.String("server", "0.0.0.0:554", "server address host:port")
+var  server = flag.String("s", "0.0.0.0:554", "server address host:port")
 var  recordMinutes = flag.Int("t", 1, "record time length in minutes")
 var  outputFile = flag.String("o", "", "output file")
 
@@ -33,7 +33,7 @@ func readHeader(reader *bufio.Reader) map[string]string {
 
 		fmt.Println(string(line))
 
-		keyvalue := strings.SplitN(string(line),":", 2)	
+		keyvalue := strings.SplitN(string(line),":", 2)
 		if len(keyvalue) > 1{
 			result[strings.ToUpper(keyvalue[0])] = strings.TrimSpace(keyvalue[1])
 		}
@@ -66,12 +66,9 @@ func readBody(reader *bufio.Reader, contentLength int) (result string){
 			readed, _ := reader.Read(buf[start:])
 			result += string(buf)
 
-			//fmt.Print(string(buf[start:start+readed]))
-
 			start += readed
 		}
 
-		//fmt.Printf("read %v bytes\n", contentLength)
 
 	}
 
@@ -85,18 +82,13 @@ func request(conn net.Conn, reader *bufio.Reader, action, url string, hs map[str
 		req += k + ": " + v + "\r\n"
 	}
 	req += fmt.Sprintf("CSeq: %d\r\n", seq)
-	//req += "User-Agent: test\r\n"
-	//req += "Content-Length: 0\r\n"
 	req += "\r\n"
 
 	fmt.Print(req)
 
 	conn.Write([]byte(req))
 
-	//reader := bufio.NewReader(conn)
-
 	headers := readHeader(reader)
-	//fmt.Println(headers)
 
 	contentLength := 0
 	value, ok := headers["CONTENT-LENGTH"]
@@ -104,7 +96,6 @@ func request(conn net.Conn, reader *bufio.Reader, action, url string, hs map[str
 		contentLength, _ = strconv.Atoi(value)
 	}
 
-	//fmt.Printf("contentLength = %v\r\n", contentLength)
 
 	if contentLength != 0{
 		return headers, readBody(reader, contentLength)
@@ -137,7 +128,6 @@ func main(){
 
 	urlBase := ""
 	urlBase , _ = headers["CONTENT-BASE"]
-	//fmt.Println(urlBase)'
 
 	var ppsSps [][]byte
 	startPos := strings.Index(body, "sprop-parameter-sets")
@@ -146,7 +136,6 @@ func main(){
 		startPos += strings.Index(body[startPos:], "=")
 		endPos := startPos + strings.Index(body[startPos:], "\r\n")
 		ppsSpsBase64 := strings.Split(body[startPos + 1:endPos], ",")
-		//fmt.Println(ppsSpsBase64)
 		ppsSps = make([][]byte, len(ppsSpsBase64))
 		for i, item := range ppsSpsBase64{
 			ppsSps[i], _ = base64.StdEncoding.DecodeString(item)
@@ -160,7 +149,6 @@ func main(){
 		startPos += strings.Index(body[startPos:], ":")
 		endPos := startPos + strings.Index(body[startPos:], "\r\n")
 		controlUrl = body[startPos+1:endPos]
-		//fmt.Println(controlUrl)
 	}
 
 	playUrl := urlBase + controlUrl 
@@ -220,7 +208,6 @@ func main(){
 
 func readAVPData(reader *bufio.Reader){
 
-	//totalBytes := 0
 
 	for {
 
@@ -255,14 +242,6 @@ func readAVPData(reader *bufio.Reader){
 		continue
 	}
 
-
-
-	/*
-	totalBytes += dataLength
-
-	if totalBytes > 100*1024{
-		break
-	}*/
 
 
 	decodeRtp(data)
